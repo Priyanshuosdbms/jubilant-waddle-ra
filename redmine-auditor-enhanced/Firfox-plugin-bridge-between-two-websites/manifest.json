@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "Redmine Auditor",
+  "version": "2.0",
+  "description": "Split screen Redmine viewer with AI summarization, multi-ticket support, and update review",
+
+  "icons": {
+    "48": "icons/redmine-editor.svg",
+    "128": "icons/redmine-editor.svg"
+  },
+
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "http://localhost:3000/*"
+  ],
+
+  "browser_action": {
+    "default_icon": "icons/redmine-editor.svg",
+    "default_title": "Redmine Auditor",
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.redmine.org/*",
+        "*://*/issues/*",
+        "*://*/redmine/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}

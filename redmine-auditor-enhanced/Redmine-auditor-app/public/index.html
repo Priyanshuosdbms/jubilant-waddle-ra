@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redmine AI Assistant</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>🔴 Redmine AI Assistant</h1>
+      <div class="header-actions">
+        <button id="showSingleBtn" class="tab-btn active" data-tab="single">Current Ticket</button>
+        <button id="showBulkBtn"   class="tab-btn"        data-tab="bulk">Bulk Queue</button>
+      </div>
+    </header>
+
+    <!-- ── SINGLE TICKET TAB ── -->
+    <div id="tab-single" class="tab-content active">
+      <div class="toolbar">
+        <button id="loadBtn"        class="btn-primary">🔄 Load / Refresh Ticket</button>
+        <button id="summarizeBtn"   class="btn-ai">🧠 AI Summarize</button>
+        <button id="evaluateBtn"    class="btn-secondary">📋 Show Details</button>
+      </div>
+
+      <!-- Ticket header -->
+      <div id="ticket-header" class="card hidden">
+        <div class="ticket-meta">
+          <a id="ticket-url" href="#" target="_blank" class="ticket-link"></a>
+        </div>
+        <h2 id="ticket-title" class="ticket-title-text"></h2>
+      </div>
+
+      <!-- AI output -->
+      <div id="ai-output" class="card hidden ai-card">
+        <div class="ai-card-header">
+          <span id="ai-output-label">AI Output</span>
+          <button id="copyAiBtn" class="btn-small">📋 Copy</button>
+        </div>
+        <div id="ai-output-body" class="ai-body"></div>
+      </div>
+
+      <!-- Ticket detail -->
+      <div id="contentArea"></div>
+
+      <!-- Edit review panel -->
+      <div id="review-panel" class="card hidden ai-card">
+        <div class="ai-card-header">
+          <span>🔍 AI Update Review</span>
+          <button id="copyReviewBtn" class="btn-small">📋 Copy</button>
+        </div>
+        <div id="review-body" class="ai-body"></div>
+      </div>
+    </div>
+
+    <!-- ── BULK QUEUE TAB ── -->
+    <div id="tab-bulk" class="tab-content">
+      <div class="toolbar">
+        <button id="refreshBulkBtn" class="btn-primary">🔄 Refresh Summaries</button>
+      </div>
+      <div id="bulk-list">
+        <div class="empty-state">Use the extension popup to save tickets and run Bulk Summarize.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
