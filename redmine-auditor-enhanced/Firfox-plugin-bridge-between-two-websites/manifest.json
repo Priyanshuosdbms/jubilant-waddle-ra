@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Redmine Auditor",
-  "version": "2.0",
+  "version": "3.0",
   "description": "Split screen Redmine viewer with AI summarization, multi-ticket support, and update review",
 
   "icons": {

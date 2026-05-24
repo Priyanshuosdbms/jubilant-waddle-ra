@@ -11,28 +11,44 @@
     <header class="app-header">
       <h1>🔴 Redmine AI Assistant</h1>
       <div class="header-actions">
-        <button id="showSingleBtn" class="tab-btn active" data-tab="single">Current Ticket</button>
-        <button id="showBulkBtn"   class="tab-btn"        data-tab="bulk">Bulk Queue</button>
+        <button class="tab-btn active" data-tab="single">Ticket</button>
+        <button class="tab-btn"        data-tab="bulk">Bulk Queue</button>
+        <button class="tab-btn"        data-tab="notes">My Notes</button>
       </div>
     </header>
 
     <!-- ── SINGLE TICKET TAB ── -->
     <div id="tab-single" class="tab-content active">
       <div class="toolbar">
-        <button id="loadBtn"        class="btn-primary">🔄 Load / Refresh Ticket</button>
-        <button id="summarizeBtn"   class="btn-ai">🧠 AI Summarize</button>
-        <button id="evaluateBtn"    class="btn-secondary">📋 Show Details</button>
+        <button id="loadBtn"      class="btn-primary">🔄 Refresh</button>
+        <button id="summarizeBtn" class="btn-ai">🧠 Summarize</button>
+        <button id="evaluateBtn"  class="btn-secondary">📋 Details</button>
+        <button id="timelineBtn"  class="btn-purple">📅 Timeline</button>
+        <button id="sentimentBtn" class="btn-orange">😐 Sentiment</button>
       </div>
 
-      <!-- Ticket header -->
+      <!-- Ticket header + assignee snapshot -->
       <div id="ticket-header" class="card hidden">
-        <div class="ticket-meta">
-          <a id="ticket-url" href="#" target="_blank" class="ticket-link"></a>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+          <div style="flex:1; min-width:0;">
+            <a id="ticket-url" href="#" target="_blank" class="ticket-link"></a>
+            <h2 id="ticket-title" class="ticket-title-text"></h2>
+          </div>
+          <!-- Assignee workload snapshot -->
+          <div id="assignee-snapshot" class="assignee-box hidden">
+            <div class="assignee-name" id="assignee-name"></div>
+            <div class="assignee-count" id="assignee-count"></div>
+          </div>
         </div>
-        <h2 id="ticket-title" class="ticket-title-text"></h2>
       </div>
 
-      <!-- AI output -->
+      <!-- Time-on-ticket estimator -->
+      <div id="time-estimate" class="card hidden">
+        <div class="section-label">⏱ Time on Ticket</div>
+        <div id="time-estimate-body"></div>
+      </div>
+
+      <!-- AI output (summary / polish / etc.) -->
       <div id="ai-output" class="card hidden ai-card">
         <div class="ai-card-header">
           <span id="ai-output-label">AI Output</span>
@@ -41,7 +57,20 @@
         <div id="ai-output-body" class="ai-body"></div>
       </div>
 
-      <!-- Ticket detail -->
+      <!-- Polished draft panel -->
+      <div id="polish-panel" class="card hidden ai-card" style="border-left-color:#2a7a2a;">
+        <div class="ai-card-header" style="color:#2a7a2a;">
+          <span>✍️ Polished Update</span>
+          <div style="display:flex;gap:6px;">
+            <button id="copyPolishBtn" class="btn-small">📋 Copy</button>
+            <button id="usePolishBtn"  class="btn-small" style="background:#2a7a2a;color:white;">Use this</button>
+          </div>
+        </div>
+        <div id="polish-original" class="ai-body" style="color:#888;font-style:italic;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:8px;"></div>
+        <div id="polish-body" class="ai-body"></div>
+      </div>
+
+      <!-- Ticket detail (description + notes) -->
       <div id="contentArea"></div>
 
       <!-- Edit review panel -->
@@ -52,15 +81,61 @@
         </div>
         <div id="review-body" class="ai-body"></div>
       </div>
+
+      <!-- Status changelog timeline -->
+      <div id="timeline-panel" class="card hidden">
+        <div class="section-label">📅 Status Changelog Timeline</div>
+        <div id="timeline-body"></div>
+      </div>
+
+      <!-- Sentiment tracker -->
+      <div id="sentiment-panel" class="card hidden">
+        <div class="section-label">😐 Sentiment Tracker</div>
+        <div id="sentiment-body" class="ai-body"></div>
+      </div>
+
+      <!-- Personal notes -->
+      <div id="notes-panel" class="card">
+        <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>📝 My Personal Notes</span>
+          <div style="display:flex;gap:6px;">
+            <button id="saveNoteBtn"   class="btn-small" style="background:#0055cc;color:white;">Save</button>
+            <button id="deleteNoteBtn" class="btn-small" style="background:#cc0000;color:white;">Delete</button>
+          </div>
+        </div>
+        <textarea id="personal-note-area"
+          placeholder="Private notes for this ticket (stored locally, never sent anywhere)…"
+          rows="3"
+          style="width:100%;margin-top:8px;padding:8px;font-size:12px;border:1px solid #ddd;border-radius:4px;resize:vertical;font-family:inherit;"></textarea>
+        <div id="note-status" style="font-size:11px;color:#888;margin-top:4px;min-height:14px;"></div>
+      </div>
     </div>
 
     <!-- ── BULK QUEUE TAB ── -->
     <div id="tab-bulk" class="tab-content">
       <div class="toolbar">
-        <button id="refreshBulkBtn" class="btn-primary">🔄 Refresh Summaries</button>
+        <button id="refreshBulkBtn" class="btn-primary">🔄 Refresh</button>
       </div>
       <div id="bulk-list">
         <div class="empty-state">Use the extension popup to save tickets and run Bulk Summarize.</div>
+      </div>
+    </div>
+
+    <!-- ── MY NOTES TAB ── -->
+    <div id="tab-notes" class="tab-content">
+      <div class="toolbar">
+        <button id="refreshNotesBtn" class="btn-primary">🔄 Refresh</button>
+      </div>
+      <div id="notes-list">
+        <div class="empty-state">No personal notes saved yet.<br>Open a ticket, write a note, and click Save.</div>
+      </div>
+    </div>
+
+    <!-- Loading overlay (shown while summarizing on first open) -->
+    <div id="ra-loading-overlay" class="hidden">
+      <div class="ra-loading-box">
+        <div class="ra-spinner"></div>
+        <div id="ra-loading-msg">Summarizing ticket…</div>
       </div>
     </div>
   </div>

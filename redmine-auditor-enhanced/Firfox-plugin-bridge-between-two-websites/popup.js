@@ -132,26 +132,43 @@ document.getElementById("bulkSummarizeBtn").addEventListener("click", () => {
       return;
     }
     const btn = document.getElementById("bulkSummarizeBtn");
-    btn.textContent = "⏳ Summarizing…";
+    btn.textContent = `⏳ 0 / ${tickets.length} done…`;
     btn.disabled = true;
 
+    // 1. Clear old bulk results on the server so the UI starts fresh
+    fetch("http://localhost:3000/bulk-summaries", { method: "DELETE" })
+      .catch(() => {}); // non-fatal if server not up yet
+
+    // 2. Open the bulk tab immediately so the user sees live progress
+    chrome.tabs.create({ url: "http://localhost:3000/#bulk" });
+
+    // 3. Kick off the sequential summarization in the background script.
+    //    background.js POSTs each result to /bulk-summary-item as it finishes,
+    //    so the browser tab above already starts showing results live.
     chrome.runtime.sendMessage(
       { action: "bulkSummarize", tickets },
       (response) => {
         btn.textContent = "📋 Bulk Summarize All";
         btn.disabled = false;
+
+        if (chrome.runtime.lastError) {
+          // Message channel closed (e.g. popup was closed mid-run) — results
+          // were still streamed to the server ticket-by-ticket, so the tab
+          // already shows them; this is just the final callback being lost.
+          setStatus("Done! Results shown in the opened tab.");
+          return;
+        }
+
         if (response && response.success) {
-          // Send results to localhost app
+          // Also do a final full POST so nothing is missed
           fetch("http://localhost:3000/bulk-summaries", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ results: response.results })
           }).catch(() => {});
-          // Open the app
-          chrome.tabs.create({ url: "http://localhost:3000/#bulk" });
-          setStatus("Bulk summaries ready!");
+          setStatus(`Done! ${response.results.length} tickets summarized.`);
         } else {
-          setStatus("Bulk summarize failed: " + (response?.error || "?"), true);
+          setStatus("Bulk summarize error: " + (response?.error || "unknown"), true);
         }
       }
     );
